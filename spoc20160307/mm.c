@@ -19,13 +19,11 @@ union Header {
 
 typedef union Header Header;
 
-Header *tail = NULL;
+Header *base = (Header *)mem, *tail = NULL;
 
 int init() {
-    Header *base = (Header *)mem;
     (base->info).next_pos = tail;
     (base->info).size = MEMSIZE - HEADER_SIZE;
-    printf("!");
     return 0;
 }
 
@@ -39,13 +37,16 @@ unsigned char *_alloc(Header *target, Header *pre, SIZE_T size) {
     Header* next = (Header *)((unsigned char *)target + HEADER_SIZE + size);
     (next->info).next_pos = (target->info).next_pos;
     (next->info).size = ((target->info).size - HEADER_SIZE - size);
-    (pre->info).next_pos = next;
+    if (pre != NULL)
+        (pre->info).next_pos = next;
+    else
+        base = next;
     (target->info).size = size;
     return ((unsigned char *)target + HEADER_SIZE);
 }
 
 unsigned char *best_alloc(unsigned long size) {
-    Header *base = (Header *)mem, *tmp = base, *target = tail, *pre_tmp = tail, *pre_target = tail;
+    Header *tmp = base, *target = tail, *pre_tmp = tail, *pre_target = tail;
     SIZE_T min_size = UMAX;
     for (; tmp != tail; pre_tmp = tmp, tmp = (tmp->info).next_pos) {
         if ((tmp->info).size >= size &&
@@ -59,11 +60,12 @@ unsigned char *best_alloc(unsigned long size) {
 }
 
 unsigned char *worst_alloc(unsigned long size) {
-    Header *base = (Header *)mem, *tmp = base, *target = tail, *pre_tmp = tail, *pre_target = tail;
+    Header *tmp = base, *target = tail, *pre_tmp = tail, *pre_target = tail;
     SIZE_T max_size = UMIN;
     for (; tmp != tail; pre_tmp = tmp, tmp = (tmp->info).next_pos) {
         if ((tmp->info).size >= size &&
             (tmp->info).size > max_size) {
+            printf("0x%08x 0x%08x\n", tmp, pre_tmp);
             target = tmp;
             pre_target = pre_tmp;
             max_size = (tmp->info).size;
@@ -73,7 +75,7 @@ unsigned char *worst_alloc(unsigned long size) {
 }
 
 unsigned char *first_alloc(unsigned long size) {
-    Header *base = (Header *)mem, *tmp = base, *target = tail, *pre_tmp = tail, *pre_target = tail;
+    Header *tmp = base, *target = tail, *pre_tmp = tail, *pre_target = tail;
     for (; tmp != tail; pre_tmp = tmp, tmp = (tmp->info).next_pos) {
         if ((tmp->info).size >= size) {
             target = tmp;
@@ -89,7 +91,7 @@ unsigned char *my_malloc(unsigned long size) {
 }
 
 int merge_block(Header *target) {
-    Header *base = (Header *)mem, *next = (target->info).next_pos;
+    Header *next = (target->info).next_pos;
     if ((unsigned char *)target + HEADER_SIZE + (target->info).size == (unsigned char *)next) {
         (target->info).size += (next->info).size + HEADER_SIZE;
         (target->info).next_pos = (next->info).next_pos;
@@ -98,15 +100,20 @@ int merge_block(Header *target) {
 }
 
 int my_free(unsigned char *p) {
-    Header *base = (Header *)mem, *target = (Header *)(p - HEADER_SIZE), *tmp = base, *pre = tail;
+    Header *target = (Header *)(p - HEADER_SIZE), *tmp = base, *pre = tail;
     for (; tmp != tail ; pre = tmp, tmp = (tmp->info).next_pos) {
         if (tmp > target && pre < target) {
-            (pre->info).next_pos = target;
+            if (pre != NULL)
+                (pre->info).next_pos = target;
+            else
+                base = target;
             (target->info).next_pos = tmp;
             break;
         }
     }
-    merge_block(target);
-    merge_block(pre);
+    if((target->info).next_pos != NULL)
+        merge_block(target);
+    if (pre != NULL)
+        merge_block(pre);
     return 0;
 }
