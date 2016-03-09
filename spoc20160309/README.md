@@ -4,7 +4,7 @@
     
     node app.js
 
-## Result:
+## Result
 
     Virtual Address 6c74:
 	  --> pde index:0x1b  pde contents:(valid 1, pfn 0x20)
