@@ -1,8 +1,8 @@
 # README
 
-## Dependency
+## Requirements
 
-* `Node.js`: [nodejs.org]<nodejs.org>
+* `Node.js`: [nodejs.org]: <nodejs.org>
 
 ## How to run
 
