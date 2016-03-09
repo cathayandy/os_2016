@@ -31,7 +31,11 @@ unsigned char *_alloc(Header *target, Header *pre, SIZE_T size) {
     if (target == tail)
         return (unsigned char *)tail;
     if ((target->info).size < HEADER_SIZE + size) {
-        (target->info).size = HEADER_SIZE + size;
+        Header* next = (target->info).next_pos;
+        if (pre != NULL)
+            (pre->info).next_pos = next;
+        else
+            base = next;
         return ((unsigned char *)target + HEADER_SIZE);
     }
     Header* next = (Header *)((unsigned char *)target + HEADER_SIZE + size);
@@ -65,7 +69,6 @@ unsigned char *worst_alloc(unsigned long size) {
     for (; tmp != tail; pre_tmp = tmp, tmp = (tmp->info).next_pos) {
         if ((tmp->info).size >= size &&
             (tmp->info).size > max_size) {
-            printf("0x%08x 0x%08x\n", tmp, pre_tmp);
             target = tmp;
             pre_target = pre_tmp;
             max_size = (tmp->info).size;
@@ -101,7 +104,16 @@ int merge_block(Header *target) {
 
 int my_free(unsigned char *p) {
     Header *target = (Header *)(p - HEADER_SIZE), *tmp = base, *pre = tail;
+    printf("0x%08x ", target);
+    
+    // printf("0x%08x 0x%08x\n", *(unsigned long*)target, *((unsigned long*)target + 1));
+    // printf("0x%08x %u\n", (target->info).next_pos, (target->info).size);
+    
     for (; tmp != tail ; pre = tmp, tmp = (tmp->info).next_pos) {
+        
+        printf("0x%08x 0x%08x 0x%08x\n", pre, target, tmp);
+        printf("0x%08x %u\n", (tmp->info).next_pos, (tmp->info).size);
+        
         if (tmp > target && pre < target) {
             if (pre != NULL)
                 (pre->info).next_pos = target;
@@ -111,6 +123,14 @@ int my_free(unsigned char *p) {
             break;
         }
     }
+    if(target > tmp) {
+        if (pre != NULL)
+                (pre->info).next_pos = target;
+            else
+                base = target;
+            (target->info).next_pos = tmp;
+    }
+    
     if((target->info).next_pos != NULL)
         merge_block(target);
     if (pre != NULL)
