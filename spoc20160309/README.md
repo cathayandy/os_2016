@@ -2,7 +2,7 @@
 
 ## Requirements
 
-* [`Node.js`](http://nodejs.org)
+* [Node.js](http://nodejs.org)
 
 ## How to run
 
