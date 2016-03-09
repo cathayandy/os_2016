@@ -1,5 +1,11 @@
 var PDE_BASE = 0x220;
 var search = function (input, arr) {
+    
+    if (!input.match(/^[0-9a-f]{4}$/)) {
+        console.log('Illegal addr format. Addr has to match /^[0-9a-f]{4}$/. (e.g. 89ab)');
+        return;
+    }
+    
     var num = parseInt(input, 16);
     var pde_index = num >> 10;
     var pte_index = (num >> 5) & 0x1f;
@@ -36,21 +42,20 @@ var search = function (input, arr) {
 var fs = require('fs');
 fs.readFile('phys.txt','utf-8', function (err, data){
     if (err) {
-        console.log(err);
+        console.log('ERROR: ' + err + '\n');
+        return;
     } else {
         data = data.replace(/page \w\w: /g, '');
         data = data.replace(/\n/g, '');
         var mem = data.split(' ');
-        // console.log(mem);
-        search('6c74', mem);
-        search('6b22', mem);
-        search('03df', mem);
-        search('69dc', mem);
-        search('317a', mem);
-        search('4546', mem);
-        search('2c03', mem);
-        search('7fd7', mem);
-        search('390e', mem);
-        search('748b', mem);
+        
+        if (process.argv.length < 3) {
+            console.log('Usage: node app.js addr [addr2 ...]');
+            return;
+        }
+            
+       	for (i = 2; i < process.argv.length; i ++) {
+            search (process.argv[i], mem);
+        }
     }
 });

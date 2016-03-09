@@ -1,8 +1,14 @@
 # README
 
 ## How to run
+
+* Run answer
     
-    node app.js
+        ./run.sh
+        
+* Run other addrs
+
+        node app.js addr \[addr2 ...]
 
 ## Result
 
