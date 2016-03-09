@@ -8,7 +8,7 @@
         
 * Run other addrs
 
-        node app.js addr \[addr2 ...]
+        node app.js addr [addr2 ...]
 
 ## Result
 
