@@ -1,5 +1,9 @@
 # README
 
+## Dependency
+
+* `Node.js`: [nodejs.org]<nodejs.org>
+
 ## How to run
 
 * Run answer
