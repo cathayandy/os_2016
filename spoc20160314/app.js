@@ -15,11 +15,11 @@ var search = function (va, pa) {
     
     va = parseInt(va);
     pa = parseInt(pa);
-    var pde_index = va >> 22;
-    var pte_index = (va >> 10) & 0x2ff;
+    var pde_index = (va >> 22) & 0x3ff;
+    var pte_index = (va >> 10) & 0x3ff;
     
-    var pde_ctx = pde_index - PDE_ACT + 1;
-    var pte_ctx = pa >> 12;
+    var pde_ctx = ((pde_index - PDE_ACT + 1) << 12) | 0x3; // WRITABLE | VALID
+    var pte_ctx = ((pa >> 12) << 12) | 0x3; // WRITABLE | VALID
     
     console.log('va 0x' + va.toString(16) + ', pa 0x' + pa.toString(16) + ', pde_idx 0x' + pde_index.toString(16) + ', pde_ctx  0x' + pde_ctx.toString(16) + ', pte_idx 0x' + pte_index.toString(16) + ', pte_ctx  0x' + pte_ctx.toString(16));
 }
