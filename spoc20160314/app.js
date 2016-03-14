@@ -1,6 +1,11 @@
 var PDE_BASE = 0x0;
 var PDE_ACT = 0x300;
 
+Number.prototype.toHex = function () {
+    var tmp = this.toString(16);
+    return '00000000'.substring(0, 8 - tmp.length) + tmp;
+};
+
 var search = function (va, pa) {
     
     if (!va.match(/^0x[0-9a-f]{8}$/)) {
@@ -21,13 +26,36 @@ var search = function (va, pa) {
     var pde_ctx = ((pde_index - PDE_ACT + 1) << 12) | 0x3; // WRITABLE | VALID
     var pte_ctx = ((pa >> 12) << 12) | 0x3; // WRITABLE | VALID
     
-    console.log('va 0x' + va.toString(16) + ', pa 0x' + pa.toString(16) + ', pde_idx 0x' + pde_index.toString(16) + ', pde_ctx  0x' + pde_ctx.toString(16) + ', pte_idx 0x' + pte_index.toString(16) + ', pte_ctx  0x' + pte_ctx.toString(16));
-}
+    console.log('va 0x' + va.toHex() + ', pa 0x' + pa.toHex() + ', pde_idx 0x' + pde_index.toHex() + ', pde_ctx  0x' + pde_ctx.toHex() + ', pte_idx 0x' + pte_index.toHex() + ', pte_ctx  0x' + pte_ctx.toHex());
+};
+
+var printUsage = function () {
+    console.log('Usage: node app.js');
+    console.log('       node app.js file=filename');
+    console.log('       node app.js va=vaddr pa=paddr');
+};
 
 var fs = require('fs');
 if (process.argv.length < 3) {
-    console.log('Usage: node app.js');
     var file = 'input.txt';
+} else if (process.argv.length == 3) {
+    if (process.argv[2].match(/^file=/)) {
+        var file = process.argv[2].replace(/^file=/, '');
+    } else {
+        printUsage();
+    }
+} else if (process.argv.length == 4) {
+    if (process.argv[2].match(/^pa=/) && process.argv[3].match(/^va=/)) {
+        var pa = process.argv[2].replace(/^pa=/, '');
+        var va = process.argv[3].replace(/^va=/, '');
+    } else if (process.argv[3].match(/^pa=/) && process.argv[2].match(/^va=/)) {
+        var pa = process.argv[3].replace(/^pa=/, '');
+        var va = process.argv[2].replace(/^va=/, '');
+    } else {
+        printUsage();
+    }
+} else {
+    printUsage();
 }
 if (file) {
     fs.readFile(file,'utf-8', function (err, data) {
@@ -37,14 +65,20 @@ if (file) {
         } else {
             data = data.replace(/va /g, '');
             data = data.replace(/ pa /g, '');
-            var arr = data.split('\n');
+            var arr = data.split('\n')
             
             for (var i = 0; i < arr.length; i ++) {
-                var item = arr[i].split(',');
-                var va = item[0];
-                var pa = item[1];
-                search(va, pa);
+                if (arr[i] === '') {
+                    continue;
+                } else if (arr[i].match(/^0x[0-9a-f]{8},0x[0-9a-f]{8}$/)) {
+                    var item = arr[i].split(',');
+                    search(item[0], item[1]);
+                } else {
+                    console.log('Line ' + i + ': Illegal line format. Line has to match /^va 0x[0-9a-f]{8}, pa 0x[0-9a-f]{8}$/');
+                }
             }
         }
     });
+} else if (va && pa) {
+    search(va, pa);
 }
