@@ -22,9 +22,8 @@ var search = function (va, pa) {
     pa = parseInt(pa);
     var pde_index = (va >> 22) & 0x3ff;
     var pte_index = (va >> 10) & 0x3ff;
-    
     var pde_ctx = ((pde_index - PDE_ACT + 1) << 12) | 0x3; // WRITABLE | VALID
-    var pte_ctx = ((pa >> 12) << 12) | 0x3; // WRITABLE | VALID
+    var pte_ctx = (pa & ~0xfff) | 0x3; // WRITABLE | VALID
     
     console.log('va 0x' + va.toHex() + ', pa 0x' + pa.toHex() + ', pde_idx 0x' + pde_index.toHex() + ', pde_ctx  0x' + pde_ctx.toHex() + ', pte_idx 0x' + pte_index.toHex() + ', pte_ctx  0x' + pte_ctx.toHex());
 };
