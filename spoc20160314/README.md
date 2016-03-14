@@ -8,7 +8,7 @@
 
 * Run answer
     
-        node.app.js
+        node app.js
         
 * Run other files
 
