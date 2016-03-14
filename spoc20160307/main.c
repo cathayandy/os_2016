@@ -15,8 +15,8 @@ int main() {
     q = my_malloc(24);
     printf("q = 0x%08x\n", q);
     
-    printf("Allocate r with 12 bytes.\n");
-    r = my_malloc(12);
+    printf("Allocate r with 16 bytes.\n");
+    r = my_malloc(16);
     printf("r = 0x%08x\n", r);
     
     printf("Allocate s with 24 bytes.\n");
@@ -32,20 +32,20 @@ int main() {
     my_free(r);
     my_free(t);
     
-    printf("Reallocate p with 12 bytes using best_alloc().\n");
-    p = best_alloc(12);
+    printf("Reallocate p with 16 bytes using best_alloc().\n");
+    p = best_alloc(16);
     printf("p = 0x%08x\n", p);
     printf("Free p.\n");
     my_free(p);
     
-    printf("Reallocate p with 12 bytes using worst_alloc().\n");
-    p = worst_alloc(12);
+    printf("Reallocate p with 16 bytes using worst_alloc().\n");
+    p = worst_alloc(16);
     printf("p = 0x%08x\n", p);
     printf("Free p.\n");
     my_free(p);
     
-    printf("Reallocate p with 12 bytes using first_alloc().\n");
-    p = first_alloc(12);
+    printf("Reallocate p with 16 bytes using first_alloc().\n");
+    p = first_alloc(16);
     printf("p = 0x%08x\n", p);
     printf("Free p.\n");
     my_free(p);

@@ -104,7 +104,7 @@ int merge_block(Header *target) {
 
 int my_free(unsigned char *p) {
     Header *target = (Header *)(p - HEADER_SIZE), *tmp = base, *pre = tail;
-    printf("0x%08x ", target);
+    printf("0x%08x ", *(p - 4));
     
     // printf("0x%08x 0x%08x\n", *(unsigned long*)target, *((unsigned long*)target + 1));
     // printf("0x%08x %u\n", (target->info).next_pos, (target->info).size);
@@ -125,10 +125,10 @@ int my_free(unsigned char *p) {
     }
     if(target > tmp) {
         if (pre != NULL)
-                (pre->info).next_pos = target;
-            else
-                base = target;
-            (target->info).next_pos = tmp;
+            (pre->info).next_pos = target;
+        else
+            base = target;
+        (target->info).next_pos = tmp;
     }
     
     if((target->info).next_pos != NULL)
