@@ -1,2 +1,2 @@
 #!/bin/bash
-node app.js 6653 1c13 6890 0af6 1e6f
+node app.js 4 3 0 2 2 3 1 2 4 2 4 0 3
