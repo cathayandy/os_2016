@@ -1,5 +1,6 @@
 #include <thread>
-#include <semaphore.h>
+#include <mutex>
+#include <condition_variable>
 #include <cstdio>
 #include <cstring>
 
@@ -8,60 +9,38 @@ const int WATER = 1;
 const int SUGAR = 2;
 const int ORANGE = 3;
 
-int buf = EMPTY;
+int buf = EMPTY, count;
 
-class Semaphore {
-  public:
-    Semaphore(unsigned int sem=0, const char* name="default") {
-        this->sem = sem_open(name, O_CREAT, 0, 0);
-        sem_init(this->sem, 0, sem);
-    }
-    ~Semaphore() {
-        sem_close(this->sem);
-        sem_destroy(this->sem);
-    }
-    void P() {
-        sem_wait(this->sem);
-    }
-    void V() {
-        sem_post(this->sem);
-    }
-  private:
-    sem_t* sem;
-};
-
-Semaphore *empty, *full, *mutex;
+std::mutex m;
+std::condition_variable notFull, notEmpty;
 
 class Producer {
   public:
-    Producer(const char* name="default", int cur=1, int turn=20) {
+    Producer(const char* name="default", int cur=1) {
         strcpy(this->name, name);
         this->cur = cur;
-        this->turn = turn;
     }
     void putBuf() {
-        empty->P();
-        mutex->P();
-    
+        std::unique_lock<std::mutex> lk(m);
+        while (count == 1)
+            notFull.wait(lk);
         if (buf == EMPTY) {
             buf = cur;
             cur ++;
-            if (cur == 4)
-                cur = 1;
         }
-    
-        mutex->V();
-        full->V(); 
+        count ++;
+        lk.unlock();
+        notEmpty.notify_one();
     }
     void run() {
-        while(turn --) {
+        while(cur < 4) {
             this->putBuf();
             printf("%s, buf=%d\n", name, buf);
         }
     }
   private:
     char name[10];
-    int cur, turn;
+    int cur;
 };
 
 class Consumer {
@@ -73,9 +52,9 @@ class Consumer {
         this->orange = orange;
     }
     void getBuf() {
-        full->P();
-        mutex->P();
-    
+        std::unique_lock<std::mutex> lk(m);
+        while (count == 0)
+            notEmpty.wait(lk);
         if (this->water == false && buf == WATER) {
             buf = EMPTY;
             this->water = true;
@@ -88,9 +67,9 @@ class Consumer {
             buf = EMPTY;
             this->orange = true;
         }
-    
-        mutex->V();
-        empty->V();
+        count --;
+        lk.unlock();
+        notFull.notify_one();
     }
     void run() {
         while(this->water == false || this->sugar == false || this->orange == false) {
@@ -123,10 +102,6 @@ void testX() {
 }
 
 int main () {
-    mutex = new Semaphore(1);
-    empty = new Semaphore(1);
-    full = new Semaphore(0);
-    
     A = new Consumer("A", true, true, false);
     B = new Consumer("B", true, false, true);
     C = new Consumer("C", false, true, true);
@@ -137,10 +112,6 @@ int main () {
     tB.join();
     tC.join();
     tX.join();
-    
-    delete mutex;
-    delete empty;
-    delete full;
     
     delete A;
     delete B;
